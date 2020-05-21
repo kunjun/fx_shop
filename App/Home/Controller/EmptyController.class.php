@@ -13,18 +13,31 @@
 namespace Home\Controller;
 use Home\Model\DenyModel;
 use Home\Model\AdvertModel;
+use Home\Controller\SpeedController;
 class EmptyController extends BaseController{
     //
+    protected $speed = false;
+    protected $tname;
+    //
     public function _initialize() {
-        parent::_initialize();
-        $this->tbname = 'advert';
-        $this->Advert = new AdvertModel($this->config);
-        $this->Deny = new DenyModel($this->config);
+        $this->tname = I('server.PATH_INFO', '', 'trim,addslashes');
+        in_array($this->tname, ['test', 'abc']) ? $this->speed = true : null;
+        if(!$this->speed){
+            parent::_initialize();
+            $this->tbname = 'advert';
+            $this->Advert = new AdvertModel($this->config);
+            $this->Deny = new DenyModel($this->config);
+        }
     }
     //
     public function index(){
-        $tname = I('server.PATH_INFO', '', 'trim,addslashes');
+        $tname = $this->tname;
         $ip = $this->clientIP();
+        if($this->speed){
+            $Speed = new SpeedController();
+            $Speed->index($tname, $ip);
+            exit;
+        }
         //$ip = '113.109.55.92';//用于本地测试
         $is_deny = $this->Deny->isIP($ip, $this->config['base']['connect']);
         $skip = I('get.skip/d', 0);
